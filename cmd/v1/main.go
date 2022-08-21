@@ -1,19 +1,21 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/gmarcha/discord-integration/internal/v1/commands"
+	"github.com/gmarcha/discord-integration/internal/v1/cmd"
+	"github.com/gmarcha/discord-integration/internal/v1/types"
 	"github.com/joho/godotenv"
 )
 
 var (
-	guildID  string
-	botToken string
+	guildID         string
+	botToken        string
+	commands        []*discordgo.ApplicationCommand
+	commandHandlers types.MapStrCmdHandle
 )
 
 func init() {
@@ -27,11 +29,36 @@ func init() {
 	botToken = os.Getenv("BOT_TOKEN")
 }
 
+func init() {
+
+	commands = []*discordgo.ApplicationCommand{
+		cmd.Basic,
+		cmd.BasicFile,
+		cmd.Localized,
+		cmd.Options,
+		cmd.Subcommands,
+		cmd.Responses,
+		cmd.Followups,
+		cmd.Permissions,
+	}
+
+	commandHandlers = types.MapStrCmdHandle{
+		"basic":       cmd.BasicHandle,
+		"basic-file":  cmd.BasicFileHandle,
+		"localized":   cmd.LocalizedHandle,
+		"options":     cmd.OptionsHandle,
+		"subcommands": cmd.SubcommandsHandle,
+		"responses":   cmd.ResponsesHandle,
+		"followups":   cmd.FollowupsHandle,
+		"permissions": cmd.PermissionsHandle,
+	}
+}
+
 func main() {
 
 	dg, err := discordgo.New("Bot " + botToken)
 	if err != nil {
-		fmt.Println("Error creating Discord session, ", err)
+		log.Println("Error creating Discord session, ", err)
 		return
 	}
 
@@ -41,14 +68,14 @@ func main() {
 
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("Error opening connection, ", err)
+		log.Println("Error opening connection, ", err)
 		return
 	}
 	defer dg.Close()
 
 	log.Println("Adding commands...")
-	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands.AppCommands))
-	for i, v := range commands.AppCommands {
+	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
+	for i, v := range commands {
 		cmd, err := dg.ApplicationCommandCreate(dg.State.User.ID, guildID, v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
@@ -92,7 +119,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 }
 
 func launchCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	if h, ok := commands.AppCommandHandlers[i.ApplicationCommandData().Name]; ok {
+	if h, ok := commandHandlers[i.ApplicationCommandData().Name]; ok {
 		h(s, i)
 	}
 }
