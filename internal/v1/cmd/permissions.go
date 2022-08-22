@@ -15,8 +15,8 @@ var (
 
 func init() {
 
-	dmPermission := false
 	defaultMemberPermissions := int64(discordgo.PermissionManageServer)
+	dmPermission := false
 
 	Permissions = &discordgo.ApplicationCommand{
 		Name:                     "permissions",
