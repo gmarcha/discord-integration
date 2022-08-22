@@ -6,77 +6,79 @@ import (
 	"os/signal"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/gmarcha/discord-integration/internal/v1/cmd"
 	"github.com/gmarcha/discord-integration/internal/v1/types"
-	"github.com/joho/godotenv"
+	"github.com/gmarcha/discord-integration/internal/v2/cmd"
+	_ "github.com/gmarcha/discord-integration/internal/v2/env"
 )
 
 var (
-	guildID         string
 	botToken        string
+	guildID         string
+	s               *discordgo.Session
 	commands        []*discordgo.ApplicationCommand
 	commandHandlers types.MapStrCmdHandle
 )
 
 func init() {
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	botToken = os.Getenv("DISCORD_BOT_TOKEN")
+	guildID = os.Getenv("DISCORD_GUILD_ID")
+}
 
-	guildID = os.Getenv("GUILD_ID")
-	botToken = os.Getenv("BOT_TOKEN")
+func init() {
+
+	var err error
+
+	s, err = discordgo.New("Bot " + botToken)
+	if err != nil {
+		log.Fatalln("Error creating Discord session")
+	}
 }
 
 func init() {
 
 	commands = []*discordgo.ApplicationCommand{
-		cmd.Basic,
-		cmd.BasicFile,
-		cmd.Localized,
-		cmd.Options,
-		cmd.Subcommands,
-		cmd.Responses,
-		cmd.Followups,
-		cmd.Permissions,
+		// cmd.Basic,
+		// cmd.BasicFile,
+		// cmd.Localized,
+		// cmd.Options,
+		// cmd.Subcommands,
+		// cmd.Responses,
+		// cmd.Followups,
+		// cmd.Permissions,
+		cmd.Event,
 	}
 
 	commandHandlers = types.MapStrCmdHandle{
-		"basic":       cmd.BasicHandle,
-		"basic-file":  cmd.BasicFileHandle,
-		"localized":   cmd.LocalizedHandle,
-		"options":     cmd.OptionsHandle,
-		"subcommands": cmd.SubcommandsHandle,
-		"responses":   cmd.ResponsesHandle,
-		"followups":   cmd.FollowupsHandle,
-		"permissions": cmd.PermissionsHandle,
+		// "basic":       cmd.BasicHandle,
+		// "basic-file":  cmd.BasicFileHandle,
+		// "localized":   cmd.LocalizedHandle,
+		// "options":     cmd.OptionsHandle,
+		// "subcommands": cmd.SubcommandsHandle,
+		// "responses":   cmd.ResponsesHandle,
+		// "followups":   cmd.FollowupsHandle,
+		// "permissions": cmd.PermissionsHandle,
+		"event": cmd.EventHandle,
 	}
 }
 
 func main() {
 
-	dg, err := discordgo.New("Bot " + botToken)
-	if err != nil {
-		log.Println("Error creating Discord session, ", err)
-		return
-	}
+	s.AddHandler(loggedIn)
+	s.AddHandler(createMessage)
+	s.AddHandler(launchCommand)
 
-	dg.AddHandler(loggedIn)
-	dg.AddHandler(messageCreate)
-	dg.AddHandler(launchCommand)
-
-	err = dg.Open()
+	err := s.Open()
 	if err != nil {
 		log.Println("Error opening connection, ", err)
 		return
 	}
-	defer dg.Close()
+	defer s.Close()
 
 	log.Println("Adding commands...")
 	registeredCommands := make([]*discordgo.ApplicationCommand, len(commands))
 	for i, v := range commands {
-		cmd, err := dg.ApplicationCommandCreate(dg.State.User.ID, guildID, v)
+		cmd, err := s.ApplicationCommandCreate(s.State.User.ID, guildID, v)
 		if err != nil {
 			log.Panicf("Cannot create '%v' command: %v", v.Name, err)
 		}
@@ -90,7 +92,7 @@ func main() {
 
 	log.Println("Removing commands...")
 	for _, v := range registeredCommands {
-		err := dg.ApplicationCommandDelete(dg.State.User.ID, guildID, v.ID)
+		err := s.ApplicationCommandDelete(s.State.User.ID, guildID, v.ID)
 		if err != nil {
 			log.Panicf("Cannot delete '%v' command: %v", v.Name, err)
 		}
@@ -105,7 +107,7 @@ func loggedIn(s *discordgo.Session, r *discordgo.Ready) {
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to.
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func createMessage(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
 	// This isn't required in this specific example but it's a good practice.
