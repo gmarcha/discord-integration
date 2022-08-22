@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/gmarcha/discord-integration/internal/v1/types"
+	"github.com/gmarcha/discord-integration/internal/v2/types"
 )
 
 var (
