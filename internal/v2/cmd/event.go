@@ -225,12 +225,7 @@ func init() {
 			log.Println(err)
 		} else {
 			for _, page := range res.Results {
-				title, ok := page.Properties["Name"].(notionapi.RichTextProperty)
-				if !ok {
-					log.Println("Wrong type")
-				} else {
-					log.Println(title.RichText)
-				}
+				log.Println(page.Properties["Name"])
 			}
 		}
 
