@@ -6,7 +6,7 @@ import (
 	"os/signal"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/gmarcha/discord-integration/internal/v2/cmd"
+	"github.com/gmarcha/discord-integration/internal/v1/cmd"
 	_ "github.com/gmarcha/discord-integration/internal/v2/env"
 	"github.com/gmarcha/discord-integration/internal/v2/types"
 )
@@ -38,27 +38,25 @@ func init() {
 func init() {
 
 	commands = []*discordgo.ApplicationCommand{
-		// cmd.Basic,
-		// cmd.BasicFile,
-		// cmd.Localized,
-		// cmd.Options,
-		// cmd.Subcommands,
-		// cmd.Responses,
-		// cmd.Followups,
-		// cmd.Permissions,
-		cmd.Event,
+		cmd.Basic,
+		cmd.BasicFile,
+		cmd.Localized,
+		cmd.Options,
+		cmd.Subcommands,
+		cmd.Responses,
+		cmd.Followups,
+		cmd.Permissions,
 	}
 
 	commandHandlers = types.MapStrCmdHandle{
-		// "basic":       cmd.BasicHandle,
-		// "basic-file":  cmd.BasicFileHandle,
-		// "localized":   cmd.LocalizedHandle,
-		// "options":     cmd.OptionsHandle,
-		// "subcommands": cmd.SubcommandsHandle,
-		// "responses":   cmd.ResponsesHandle,
-		// "followups":   cmd.FollowupsHandle,
-		// "permissions": cmd.PermissionsHandle,
-		"event": cmd.EventHandle,
+		"basic":       cmd.BasicHandle,
+		"basic-file":  cmd.BasicFileHandle,
+		"localized":   cmd.LocalizedHandle,
+		"options":     cmd.OptionsHandle,
+		"subcommands": cmd.SubcommandsHandle,
+		"responses":   cmd.ResponsesHandle,
+		"followups":   cmd.FollowupsHandle,
+		"permissions": cmd.PermissionsHandle,
 	}
 }
 
