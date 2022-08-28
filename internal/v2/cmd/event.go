@@ -208,6 +208,14 @@ func init() {
 		switch options[0].Name {
 		case "list":
 			content = "List subcommand."
+			res, err := notion.Client.Database.Query(context.Background(), eventDatabaseID, nil)
+			if err != nil {
+				log.Println(err)
+			} else {
+				for _, page := range res.Results {
+					log.Println(page.Properties["Name"])
+				}
+			}
 		case "create":
 			content = "Create subcommand."
 		case "read":
@@ -218,15 +226,6 @@ func init() {
 			content = "Delete subcommand."
 		default:
 			content = "Not implemented"
-		}
-
-		res, err := notion.Client.Database.Query(context.Background(), eventDatabaseID, nil)
-		if err != nil {
-			log.Println(err)
-		} else {
-			for _, page := range res.Results {
-				log.Println(page.Properties["Name"])
-			}
 		}
 
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
